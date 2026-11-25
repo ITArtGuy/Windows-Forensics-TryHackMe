@@ -30,6 +30,10 @@ I investigated a suspected unauthorized-access case on a Windows 10 research-lab
 | 6 | `SOFTWARE\Microsoft\Windows Portable Devices\Devices` | Map a device's friendly name to its volume GUID | `FriendlyName` value on the device key |
 | 7 | `SYSTEM\ControlSet001\Enum\USBSTOR` + `Properties\{83da6326-...}\0066` | Last time that device was connected | USBSTOR Disk Id matched the volume GUID from step 6; both devices on the system cross-checked |
 
+![SAM User Password Hint](screenshots/03-sam-userpasswordhint-utf16le-bytes.png)
+![SOFTWARE Portable Devices](screenshots/05-software-portable-devices-friendlyname-usb.png)
+![SYSTEM LOGS](screenshots/07-system-enum-usbstor-device-table.png)
+
 ---
 
 ## Key registry paths
@@ -93,6 +97,9 @@ Specific answers are left out to respect TryHackMe's no-spoilers expectation.
 | Couldn't find the RID values | RIDs are the **hex key names** under `Users` (`000003E9`) | Converted hex → decimal; RID ≥ 1000 = user-created (1000 = `3E8` in hex) |
 | Password hint showed as `xx-00-xx-00-...` bytes | Windows stores text as **UTF-16LE**: 2 bytes per character, low byte first | Dropped the `00` bytes and looked up each byte in an ASCII table |
 | "Root nk record not found" when loading a hive | Registry Explorer read the header but found no root key (`nk` record) at the offset the header gave, so the selected file wasn't a complete hive | Rechecked that I picked the primary hive (not a `.LOG`, `.sav` or RegBack file) from the triage folder and reloaded |
+
+![Root nk Record Error](screenshots/04-root-nk-record-not-found-error.png)
+
 | `usbstor` key showed only `DeviceHackFlags` and no serial numbers | I was in `Control\usbstor`, which holds **driver compatibility settings** that ship with Windows | Moved to `Enum\USBSTOR`, which only records devices actually connected |
 | SOFTWARE device key had no serial number | Newer Windows 10 builds name these keys by **volume GUID** (`SWD#WPDBUSENUM#{GUID}#...`) | Matched the GUID to the **Disk Id** column in USBSTOR |
 | On one load I declined log replay and cancelled the save dialog | The hive loaded **dirty**, without the transaction logs merged | Recorded that values from that load may be stale; the reliable path is to replay the logs and analyze the clean hive |
